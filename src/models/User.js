@@ -4,14 +4,15 @@ import bcrypt from "bcrypt"; // For Passord Hashing
 
 const userSchema = new mongoose.Schema(
   {
-    id: {
-      type: String,
+    user_id: {
+      type: mongoose.Schema.Types.String,
       default: uuid4, // Automatically Generates UUID
     },
     email: {
       type: String,
       required: [true, "Email is required"],
       unique: true,
+      index: true,
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
         "Please fill a valid email address",
@@ -21,6 +22,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Passord is required"],
       minlength: 8,
+      match: [
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must be at least 8 characters long, contain at least one letter, one number, and one special character.",
+      ],
     },
     role: {
       type: String,
@@ -40,6 +45,7 @@ userSchema.pre("save", async function (next) {
     this.password = await bcrypt.hash(this.password, 10);
     next();
   } catch (error) {
+    console.log(`Error hashing password: ${error}`);
     next(error);
   }
 });
