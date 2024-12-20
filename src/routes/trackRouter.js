@@ -3,6 +3,6 @@ import { addTrack } from "../controllers/trackController.js";
 
 const router = Router();
 
-router.route("/").get(addTrack);
+router.route("/track").get(addTrack);
 
 export default router;

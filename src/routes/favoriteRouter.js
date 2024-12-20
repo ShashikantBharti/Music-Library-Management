@@ -3,6 +3,6 @@ import { addFavorite } from "../controllers/favoriteController.js";
 
 const router = Router();
 
-router.route("/").get(addFavorite);
+router.route("/favorite").get(addFavorite);
 
 export default router;
