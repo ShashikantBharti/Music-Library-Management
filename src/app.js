@@ -24,10 +24,15 @@ import trackRouter from "./routes/trackRouter.js";
 import userRouter from "./routes/userRouter.js";
 
 // Declare Routes
+
 app.use("/api/v1", albumRouter);
 app.use("/api/v1", artistRouter);
 app.use("/api/v1", favoriteRouter);
 app.use("/api/v1", trackRouter);
 app.use("/api/v1", userRouter);
+
+app.use("*", (req, res) => {
+  res.send("Invalid Access!!");
+});
 
 export default app;
