@@ -63,12 +63,12 @@ export const getArtists = asyncHandler(async (req, res) => {
 
 export const addArtist = asyncHandler(async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    const artistExists = await Artist.findOne({ email });
+    const { name, grammy, hidden } = req.body;
+    const artistExists = await Artist.findOne({ name });
     if (artistExists) {
       res.status(400).send({ message: "Artist already exists" });
     } else {
-      const newArtist = await Artist.create({ name, email, password });
+      const newArtist = await Artist.create({ name, grammy, hidden });
       res.send(newArtist);
     }
   } catch (error) {

@@ -13,6 +13,7 @@ const artistSchema = new mongoose.Schema(
       index: true,
       required: [true, "Artist name is required"],
       trim: true,
+      unique: true,
     },
     grammy: {
       type: Boolean,
@@ -25,20 +26,8 @@ const artistSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: {
-      versionKey: false,
-      transform: (doc, ret) => {
-        ret.id = ret._id;
-        delete ret._id;
-      },
-    },
   }
 );
-
-artistSchema.pre("save", function (next) {
-  this.name = this.name.toLowerCase();
-  next();
-});
 
 artistSchema.pre("findOneAndUpdate", function (next) {
   this.options.runValidators = true;

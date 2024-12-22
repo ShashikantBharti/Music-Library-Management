@@ -2,14 +2,15 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import asyncHandler from "../utils/asyncHandler.js";
+import { generateAdminToken } from "../utils/createToken.js";
 
 export const logout = asyncHandler(async (req, res) => {
   try {
-    req.session.destroy();
-    res.clearCookie("jwt");
+    res.clearCookie("token", { httpOnly: true });
+
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to log out" });
+    res.status(500).json({ message: error.message || "Failed to log out" });
   }
 });
 
@@ -24,14 +25,12 @@ export const login = asyncHandler(async (req, res) => {
       if (!isMatch) {
         res.status(401).json({ message: "Invalid email or password" });
       } else {
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-          expiresIn: "30d",
-        });
-        res.status(200).json({ token });
+        res.cookie("token", user.token, { httpOnly: true });
+        res.status(200).json({ message: "Login Successfull!" });
       }
     }
   } catch (error) {
-    res.status(500).json({ message: "Failed to login" });
+    res.status(500).json({ message: error.message || "Failed to login" });
   }
 });
 
@@ -42,40 +41,73 @@ export const signup = asyncHandler(async (req, res) => {
     if (userExists) {
       res.status(400).json({ message: "User already exists" });
     } else {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await User.create({ name, email, password: hashedPassword });
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      const token = jwt.sign({ email: email }, process.env.JWT_SECRET, {
         expiresIn: "30d",
       });
+      const user = await User.create({ name, email, password, token });
       res.status(201).json({ token });
     }
   } catch (error) {
-    res.status(500).json({ message: "Failed to sign up" });
+    res.status(500).json({ message: error.message || "Failed to sign up" });
   }
 });
 
 export const addUser = asyncHandler(async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      res.status(400).json({ message: "User already exists" });
-    } else {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await User.create({ name, email, password: hashedPassword });
-      res.status(201).json({ message: "User added successfully" });
+    const { name, email, password, role } = req.body;
+
+    if (role?.toLowerCase() === "admin") {
+      return res.status(400).json({ message: "Role cannot be admin" });
     }
+
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const if_token = generateAdminToken({
+      email: email,
+    });
+    if (!if_token) {
+      return res
+        .status(401)
+        .json({ status: false, message: "Error while generating token" });
+    }
+
+    await User.create({
+      name,
+      email,
+      password,
+      role,
+      token: if_token,
+    });
+    res.status(201).json({ message: "User added successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to add user" });
+    res.status(500).json({ message: error.message || "Failed to add user" });
   }
 });
 
 export const getUsers = asyncHandler(async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const { limit = 10, offset = 0, role } = req.query;
+    const query = {};
+
+    if (role) {
+      query.role = role;
+    }
+
+    const parsedLimit = parseInt(limit, 10);
+    const parsedOffset = parseInt(offset, 10);
+
+    const users = await User.find(query)
+      .select("-password")
+      .skip(parsedOffset)
+      .limit(parsedLimit);
+
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ message: "Failed to get users" });
+    res.status(500).json({ message: error.message || "Failed to get users" });
   }
 });
 
@@ -108,17 +140,17 @@ export const updatePassword = asyncHandler(async (req, res) => {
       if (!isMatch) {
         res.status(401).json({ message: "Invalid old password" });
       } else {
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        user.password = hashedPassword;
+        user.password = newPassword;
         await user.save();
         res.status(200).json({ message: "Password updated successfully" });
       }
     }
   } catch (error) {
-    res.status(500).json({ message: "Failed to update password" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to update password" });
   }
 });
-
 export const addSuperAdmin = asyncHandler(async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -126,11 +158,22 @@ export const addSuperAdmin = asyncHandler(async (req, res) => {
     if (userExists) {
       res.status(400).json({ message: "User already exists" });
     } else {
+      // creating JWT tokekn for user base authentication
+      const if_token = generateAdminToken({
+        email: email,
+      });
+      if (!if_token) {
+        return res
+          .status(401)
+          .json({ status: false, message: "Error while generating token" });
+      }
       await User.create({
         email,
         password,
         role: "admin",
+        token: if_token,
       });
+
       res.status(201).json({ message: "Super admin added successfully" });
     }
   } catch (error) {
