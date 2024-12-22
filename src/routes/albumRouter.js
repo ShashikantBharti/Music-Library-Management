@@ -11,7 +11,7 @@ const router = Router();
 
 router.route("/albums").get(getAlbums);
 router.route("/albums/:id").get(getAlbum);
-router.route("/albums/add-artist").post(addAlbum);
+router.route("/albums/add-album").post(addAlbum);
 router.route("/albums/:id").put(updateAlbum);
 router.route("/albums/:id").delete(deleteAlbum);
 

@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
   {
     user_id: {
       type: mongoose.Schema.Types.String,
-      default: uuid4, // Automatically Generates UUID
+      default: uuid4,
     },
     email: {
       type: String,
@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Passord is required"],
+      required: [true, "Password is required"],
       minlength: 8,
       match: [
         /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
@@ -29,8 +29,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "editor", "viewer"], // Allow only these role
-      default: "viewer", // default viewer
+      enum: ["admin", "editor", "viewer"],
+      default: "viewer",
     },
   },
   {
@@ -38,11 +38,11 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Hash Password before saving
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next(); // Skip is password is not changed
+  if (!this.isModified("password")) return next();
   try {
-    this.password = await bcrypt.hash(this.password, 10);
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
     console.log(`Error hashing password: ${error}`);
@@ -50,11 +50,9 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Method to compare password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Create and export mode
 const User = mongoose.model("User", userSchema);
 export default User;

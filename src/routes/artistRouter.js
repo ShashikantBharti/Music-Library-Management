@@ -9,10 +9,10 @@ import {
 
 const router = Router();
 
-router.route("/artist").get(getArtists);
-router.route("/artist/:id").get(getArtist);
-router.route("/artist/add-artist").post(addArtist);
-router.route("/artist:id").put(updateArtist);
-router.route("/artist:id").delete(deleteArtist);
+router.route("/artists").get(getArtists);
+router.route("/artists/:id").get(getArtist);
+router.route("/artists/add-artist").post(addArtist);
+router.route("/artists/:id").put(updateArtist);
+router.route("/artists/:id").delete(deleteArtist);
 
 export default router;

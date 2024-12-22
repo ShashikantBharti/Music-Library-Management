@@ -1,16 +1,17 @@
 import mongoose from "mongoose";
 import { v4 as uuid4 } from "uuid";
-
 const albumSchema = new mongoose.Schema(
   {
     album_id: {
       type: mongoose.Schema.Types.String,
       default: uuid4,
+      unique: true,
     },
     name: {
       type: String,
       index: true,
       required: [true, "Album name is required!"],
+      trim: true,
     },
     year: {
       type: Number,
@@ -31,11 +32,14 @@ const albumSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    validateBeforeSave: true,
   }
 );
 
 albumSchema.pre("save", function (next) {
-  this.name = this.name.trim();
+  if (this.isNew) {
+    this.album_id = uuid4();
+  }
   next();
 });
 

@@ -3,7 +3,7 @@ import { v4 as uuid4 } from "uuid";
 
 const favoriteSchema = new mongoose.Schema(
   {
-    favorite_id: {
+    favoriteId: {
       type: mongoose.Schema.Types.String,
       default: uuid4,
     },
@@ -11,6 +11,7 @@ const favoriteSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       index: true,
+      required: true,
     },
     entityId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -24,6 +25,7 @@ const favoriteSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    collection: "favorites",
   }
 );
 

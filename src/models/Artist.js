@@ -6,11 +6,13 @@ const artistSchema = new mongoose.Schema(
     artist_id: {
       type: mongoose.Schema.Types.String,
       default: uuid4,
+      unique: true,
     },
     name: {
       type: String,
       index: true,
       required: [true, "Artist name is required"],
+      trim: true,
     },
     grammy: {
       type: Boolean,
@@ -23,12 +25,23 @@ const artistSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      versionKey: false,
+      transform: (doc, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
+      },
+    },
   }
 );
 
 artistSchema.pre("save", function (next) {
-  this.name = this.name.trim();
   this.name = this.name.toLowerCase();
+  next();
+});
+
+artistSchema.pre("findOneAndUpdate", function (next) {
+  this.options.runValidators = true;
   next();
 });
 
