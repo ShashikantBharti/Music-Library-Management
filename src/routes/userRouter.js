@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  addSuperAdmin,
   addUser,
   deleteUser,
   getUsers,
@@ -11,6 +12,7 @@ import {
 
 const router = Router();
 
+router.route("/add-super-admin").post(addSuperAdmin);
 router.route("/logout").get(logout);
 router.route("/signup").post(signup);
 router.route("/login").post(login);

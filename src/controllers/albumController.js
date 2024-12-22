@@ -44,7 +44,7 @@ export const updateAlbum = asyncHandler(async (req, res) => {
 export const getAlbums = asyncHandler(async (req, res) => {
   try {
     const albums = await Album.find();
-    res.status(200).json({ message: "Albums retrieved successfully", albums });
+    res.status(200).json(albums);
   } catch (error) {
     res
       .status(500)
@@ -59,7 +59,7 @@ export const getAlbum = asyncHandler(async (req, res) => {
     if (!album) {
       res.status(404).json({ message: "Album not found" });
     } else {
-      res.status(200).json({ message: "Album retrieved successfully", album });
+      res.status(200).json(album);
     }
   } catch (error) {
     res

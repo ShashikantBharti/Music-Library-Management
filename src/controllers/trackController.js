@@ -4,20 +4,18 @@ import bcrypt from "bcryptjs";
 import asyncHandler from "../utils/asyncHandler.js";
 
 export const deleteTrack = asyncHandler(async (req, res) => {
-  const trackId = req.params.id;
-  if (!trackId) {
-    res.status(400).send({ message: "Track ID is required" });
-    return;
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).send({ message: "Track ID is required" });
   }
 
   try {
-    const track = await Track.findById(trackId);
+    const track = await Track.findByIdAndDelete(id);
     if (!track) {
-      res.status(404).send({ message: "Track not found" });
-      return;
+      return res.status(404).send({ message: "Track not found" });
     }
 
-    await track.remove();
     res.send({ message: "Track deleted successfully" });
   } catch (error) {
     res.status(500).send({ message: "Error deleting track" });
